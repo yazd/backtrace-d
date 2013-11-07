@@ -4,5 +4,6 @@
   "homepage": "https://github.com/yazd/backtrace-d",
   "copyright": "Copyright © 2013, Yazan Dabain",
   "authors": ["Yazan Dabain"],
-  "targetType": "sourceLibrary"
+  "targetType": "sourceLibrary",
+  "license": "BSL-1.0"
 }
