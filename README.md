@@ -132,7 +132,8 @@ Documentation
 -------------
 
     //prints the backtrace to `output` using the printing `options` provided. Frames to skip is used to
-    //skip frames that belong to the internal code of the library
+    //skip frames that belong to the internal code of the library. You might need to change this depending
+    //on the optimization level of your compiler
     void printPrettyTrace(File output, PrintOptions options = PrintOptions.init, uint framesToSkip = 1)
 
     //install the runtime trace handler to print the backtraces

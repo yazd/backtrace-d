@@ -1,0 +1,8 @@
+{
+  "name": "backtrace-d",
+  "description": "Provides a pretty backtrace for D applications running under Linux",
+  "homepage": "https://github.com/yazd/backtrace-d",
+  "copyright": "Copyright © 2013, Yazan Dabain",
+  "authors": ["Yazan Dabain"],
+  "targetType": "sourceLibrary"
+}
