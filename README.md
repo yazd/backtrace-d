@@ -64,8 +64,8 @@ This will print the following to the standard error:
     #12: ?? line (0) in __libc_start_main
 
 
-Example on using `install`
---------------------------
+Example on using `install` (DMD only)
+-------------------------------------
 
     import Backtrace = backtrace.backtrace;
     import std.stdio;
@@ -81,40 +81,40 @@ Example on using `install`
     }
 
     void goToF2(uint i = 0) {
-      if (i == 2) {
-        throw new Exception("bye");
-      }
+      if (i == 2) throw new Exception("Exception thrown");
       goToF2(++i);
     }
 
 This will print the following to the standard error:
 
-    object.Exception@source/app.d(16): bye
+    object.Exception@source/app.d(15): Exception thrown
     ----------------
     Stack trace:
-    #1: /path/to/source/app.d line (19) in void app.goToF2(uint)
+    #1: /home/userx/Projects/backtrace/source/app.d line (16) in void app.goToF2(uint)
 
-     (16)         throw new Exception("bye");
-     (17)       }
-     (18)       goToF2(++i);
-    >(19)     }
+     (13)
+     (14) void goToF2(uint i = 0) {
+     (15)   if (i == 2) throw new Exception("Exception thrown");
+    >(16)   goToF2(++i);
+     (17) }
 
-    #2: /path/to/source/app.d line (19) in void app.goToF2(uint)
+    #2: /home/userx/Projects/backtrace/source/app.d line (17) in void app.goToF2(uint)
 
-     (16)         throw new Exception("bye");
-     (17)       }
-     (18)       goToF2(++i);
-    >(19)     }
+     (14) void goToF2(uint i = 0) {
+     (15)   if (i == 2) throw new Exception("Exception thrown");
+     (16)   goToF2(++i);
+    >(17) }
 
-    #3: /path/to/source/app.d line (12) in void app.goToF1()
-    #4: /path/to/source/app.d line (7) in _Dmain
-    #5: ?? line (0) in extern (C) int rt.dmain2._d_run_main(int, char**, extern (C) int function(char[][])*).void runMain()
-    #6: ?? line (0) in extern (C) int rt.dmain2._d_run_main(int, char**, extern (C) int function(char[][])*).void tryExec(scope void delegate())
-    #7: ?? line (0) in extern (C) int rt.dmain2._d_run_main(int, char**, extern (C) int function(char[][])*).void runAll()
-    #8: ?? line (0) in extern (C) int rt.dmain2._d_run_main(int, char**, extern (C) int function(char[][])*).void tryExec(scope void delegate())
-    #9: ?? line (0) in _d_run_main
-    #10: ?? line (0) in main
-    #11: ?? line (0) in __libc_start_main
+    #3: /home/userx/Projects/backtrace/source/app.d line (17) in void app.goToF2(uint)
+    #4: /home/userx/Projects/backtrace/source/app.d line (12) in void app.goToF1()
+    #5: /home/userx/Projects/backtrace/source/app.d line (7) in _Dmain
+    #6: ?? line (0) in extern (C) int rt.dmain2._d_run_main(int, char**, extern (C) int function(char[][])*).void runMain()
+    #7: ?? line (0) in extern (C) int rt.dmain2._d_run_main(int, char**, extern (C) int function(char[][])*).void tryExec(scope void delegate())
+    #8: ?? line (0) in extern (C) int rt.dmain2._d_run_main(int, char**, extern (C) int function(char[][])*).void runAll()
+    #9: ?? line (0) in extern (C) int rt.dmain2._d_run_main(int, char**, extern (C) int function(char[][])*).void tryExec(scope void delegate())
+    #10: ?? line (0) in _d_run_main
+    #11: ?? line (0) in main
+    #12: ?? line (0) in __libc_start_main
     ----------------
 
 
@@ -156,7 +156,7 @@ Work to do and bugs
  - Problem could reside in the debug symbols emitted by the compilers or the code that produces backtrace addresses.
 
 - Integrate the library with `Runtime.traceHandler` (work in progress)
- - Problems include missing frame where exception occured.
+ - Only works under DMD for now.
 
 Feedback and pull requests
 --------------------------

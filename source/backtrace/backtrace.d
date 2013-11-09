@@ -235,7 +235,7 @@ private Throwable.TraceInfo btTraceHandler(void* ptr) {
   return new BTTraceHandler(runtimeOutputFile, runtimePrintOptions, runtimeFramesToSkip);
 }
 
-void install(File file, PrintOptions options = PrintOptions.init, uint framesToSkip = 6) {
+void install(File file, PrintOptions options = PrintOptions.init, uint framesToSkip = 5) {
   import core.runtime;
   runtimePrintOptions = options;
   runtimeOutputFile = file;
