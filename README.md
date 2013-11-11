@@ -90,7 +90,7 @@ This will print the following to the standard error:
     object.Exception@source/app.d(15): Exception thrown
     ----------------
     Stack trace:
-    #1: /home/userx/Projects/backtrace/source/app.d line (16) in void app.goToF2(uint)
+    #1: /path/to/source/app.d line (16) in void app.goToF2(uint)
 
      (13)
      (14) void goToF2(uint i = 0) {
@@ -98,16 +98,16 @@ This will print the following to the standard error:
     >(16)   goToF2(++i);
      (17) }
 
-    #2: /home/userx/Projects/backtrace/source/app.d line (17) in void app.goToF2(uint)
+    #2: /path/to/source/app.d line (17) in void app.goToF2(uint)
 
      (14) void goToF2(uint i = 0) {
      (15)   if (i == 2) throw new Exception("Exception thrown");
      (16)   goToF2(++i);
     >(17) }
 
-    #3: /home/userx/Projects/backtrace/source/app.d line (17) in void app.goToF2(uint)
-    #4: /home/userx/Projects/backtrace/source/app.d line (12) in void app.goToF1()
-    #5: /home/userx/Projects/backtrace/source/app.d line (7) in _Dmain
+    #3: /path/to/source/app.d line (17) in void app.goToF2(uint)
+    #4: /path/to/source/app.d line (12) in void app.goToF1()
+    #5: /path/to/source/app.d line (7) in _Dmain
     #6: ?? line (0) in extern (C) int rt.dmain2._d_run_main(int, char**, extern (C) int function(char[][])*).void runMain()
     #7: ?? line (0) in extern (C) int rt.dmain2._d_run_main(int, char**, extern (C) int function(char[][])*).void tryExec(scope void delegate())
     #8: ?? line (0) in extern (C) int rt.dmain2._d_run_main(int, char**, extern (C) int function(char[][])*).void runAll()
