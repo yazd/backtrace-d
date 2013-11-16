@@ -55,13 +55,6 @@ This will print the following to the standard error:
     #3: /path/to/source/app.d line (17) in void app.goToF2(uint)
     #4: /path/to/source/app.d line (10) in void app.goToF1()
     #5: /path/to/source/app.d line (5) in _Dmain
-    #6: ?? line (0) in extern (C) int rt.dmain2._d_run_main(int, char**, extern (C) int function(char[][])*).void runMain()
-    #7: ?? line (0) in extern (C) int rt.dmain2._d_run_main(int, char**, extern (C) int function(char[][])*).void tryExec(scope void delegate())
-    #8: ?? line (0) in extern (C) int rt.dmain2._d_run_main(int, char**, extern (C) int function(char[][])*).void runAll()
-    #9: ?? line (0) in extern (C) int rt.dmain2._d_run_main(int, char**, extern (C) int function(char[][])*).void tryExec(scope void delegate())
-    #10: ?? line (0) in _d_run_main
-    #11: ?? line (0) in main
-    #12: ?? line (0) in __libc_start_main
 
 
 Example on using `install` (DMD only)
@@ -108,13 +101,6 @@ This will print the following to the standard error:
     #3: /path/to/source/app.d line (17) in void app.goToF2(uint)
     #4: /path/to/source/app.d line (12) in void app.goToF1()
     #5: /path/to/source/app.d line (7) in _Dmain
-    #6: ?? line (0) in extern (C) int rt.dmain2._d_run_main(int, char**, extern (C) int function(char[][])*).void runMain()
-    #7: ?? line (0) in extern (C) int rt.dmain2._d_run_main(int, char**, extern (C) int function(char[][])*).void tryExec(scope void delegate())
-    #8: ?? line (0) in extern (C) int rt.dmain2._d_run_main(int, char**, extern (C) int function(char[][])*).void runAll()
-    #9: ?? line (0) in extern (C) int rt.dmain2._d_run_main(int, char**, extern (C) int function(char[][])*).void tryExec(scope void delegate())
-    #10: ?? line (0) in _d_run_main
-    #11: ?? line (0) in main
-    #12: ?? line (0) in __libc_start_main
     ----------------
 
 
@@ -125,6 +111,7 @@ You can customize the way the backtrace is printed using the following options:
     options.numberOfLinesBefore = 3; //number of lines of code to show before the specific line
     options.numberOfLinesAfter  = 3; //number of lines of code to show after the specific line
     options.colored = true;          //enable colored output for the backtrace
+    options.stopAtDMain = false;     //show stack traces after the entry point of the D code
     printPrettyTrace(stdout, options);
 
 

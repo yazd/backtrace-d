@@ -18,7 +18,7 @@ struct Trace {
 struct Symbol {
   string line;
 
-  string demangled() {
+  string demangled() const {
     import std.demangle;
     import std.algorithm, std.range;
     import std.conv : to;
@@ -33,6 +33,7 @@ struct PrintOptions {
   bool colored = false;
   uint numberOfLinesBefore = 3;
   uint numberOfLinesAfter = 3;
+  bool stopAtDMain = true;
 }
 
 import std.stdio;
@@ -196,6 +197,8 @@ private void printPrettyTrace(const(void*[]) bt, File output, PrintOptions optio
       output.writeln(reset());
 
     }
+
+    if (options.stopAtDMain && symbol == "_Dmain") break;
   }
 }
 
