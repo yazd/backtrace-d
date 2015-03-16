@@ -14,7 +14,7 @@ exceptions beautiful. This works using DMD compiled applications only for now.
 Example on using `printPrettyTrace`
 -----------------------------------
 
-    import backtrace.backtrace;
+    import backtrace;
     import std.stdio;
 
     void main() {
@@ -60,11 +60,11 @@ This will print the following to the standard error:
 Example on using `install` (DMD only)
 -------------------------------------
 
-    import Backtrace = backtrace.backtrace;
+    static import backtrace;
     import std.stdio;
 
     void main() {
-      Backtrace.install(stderr);
+      backtrace.install(stderr);
 
       goToF1();
     }
