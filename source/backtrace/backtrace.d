@@ -41,6 +41,10 @@ import std.stdio;
 version(DigitalMars) {
 
   void*[] getBacktrace() {
+    enum CALL_INST_LENGTH = 1; // I don't know the size of the call instruction
+                               // and whether it is always 5. I picked 1 instead
+                               // because it is enough to get the backtrace
+                               // to point at the call instruction
     void*[maxBacktraceSize] buffer;
 
     static void** getBasePtr() {
@@ -60,7 +64,7 @@ version(DigitalMars) {
       auto stackPtr = stackTop;
 
       for (traceSize = 0; stackTop <= stackPtr && stackPtr < stackBottom && traceSize < buffer.length; ) {
-        buffer[traceSize++] = *(stackPtr + 1);
+        buffer[traceSize++] = (*(stackPtr + 1)) - CALL_INST_LENGTH;
         stackPtr = cast(void**) *stackPtr;
       }
     }
