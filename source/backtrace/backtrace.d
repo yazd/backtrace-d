@@ -106,9 +106,8 @@ Trace[] getLineTrace(const(void*[]) backtrace) {
   scope(exit) addr2line.pid.wait();
 
   Trace[] trace = new Trace[backtrace.length];
-  // foreach_reverse is used due to some weird behaviour of addr2line
-  // some addresses resolve differently if resolved after some other addresses
-  foreach_reverse (i, bt; backtrace) {
+
+  foreach (i, bt; backtrace) {
     addr2line.stdin.writefln("0x%X", bt);
     addr2line.stdin.flush();
     dstring reply = addr2line.stdout.readln!dstring().chomp();
@@ -174,7 +173,7 @@ private void printPrettyTrace(const(void*[]) bt, File output, PrintOptions optio
 
   foreach(i, t; trace.drop(framesToSkip)) {
     auto symbol = symbols[framesToSkip + i].demangled;
-    output.writeln("#", i + 1, ": ", forecolor(Color.red), t.file, reset(), " line ", forecolor(Color.yellow), "(", t.line, ")", reset(), symbol.length == 0 ? "" : " in ", forecolor(Color.green), symbol, reset());
+    output.writeln("#", i + 1, ": ", forecolor(Color.red), t.file, reset(), " line ", forecolor(Color.yellow), "(", t.line, ")", reset(), symbol.length == 0 ? "" : " in ", forecolor(Color.green), symbol, reset(), " @ ", forecolor(Color.green), "0x", bt[i + 1], reset());
 
     if (i < options.detailedForN) {
       uint startingLine = max(t.line - options.numberOfLinesBefore - 1, 0);
