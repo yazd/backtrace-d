@@ -1,14 +1,20 @@
 module backtrace.backtrace;
 
 version(linux) {
-  import core.sys.linux.execinfo;
-  extern (C) void* thread_stackBottom();
+  // allow only linux platform
 } else {
-  static assert(0, "backtrace only works in a Linux environment, the advanced backtrace won't be attached.");
+  pragma(msg, "backtrace only works in a Linux environment");
 }
+
+version(linux):
+
+import std.stdio;
+import core.sys.linux.execinfo;
 
 private enum maxBacktraceSize = 32;
 private alias TraceHandler = Throwable.TraceInfo function(void* ptr);
+
+extern (C) void* thread_stackBottom();
 
 struct Trace {
   string file;
@@ -35,8 +41,6 @@ struct PrintOptions {
   uint numberOfLinesAfter = 3;
   bool stopAtDMain = true;
 }
-
-import std.stdio;
 
 version(DigitalMars) {
 
