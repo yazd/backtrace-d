@@ -145,7 +145,7 @@ void printPrettyTrace(PrintOptions options = PrintOptions.init, uint framesToSki
 
 void printPrettyTrace(File output, PrintOptions options = PrintOptions.init, uint framesToSkip = 1) {
   void*[] bt = getBacktrace();
-  auto or = stdout.lockingTextWriter();
+  auto or = output.lockingTextWriter();
   printPrettyTrace(bt, or, options, framesToSkip);
 }
 
