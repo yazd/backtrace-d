@@ -1,3 +1,5 @@
+//Written in the D programming language
+
 module backtrace.backtrace;
 
 version(linux) {
@@ -135,14 +137,27 @@ private string exePath() {
   return path;
 }
 
+void printPrettyTrace(PrintOptions options = PrintOptions.init, uint framesToSkip = 1) {
+  void*[] bt = getBacktrace();
+  auto or = stdout.lockingTextWriter();
+  printPrettyTrace(bt, or, options, framesToSkip);
+}
+
 void printPrettyTrace(File output, PrintOptions options = PrintOptions.init, uint framesToSkip = 1) {
+  void*[] bt = getBacktrace();
+  auto or = stdout.lockingTextWriter();
+  printPrettyTrace(bt, or, options, framesToSkip);
+}
+
+void printPrettyTrace(OR)(ref OR output, PrintOptions options = PrintOptions.init, uint framesToSkip = 1) {
   void*[] bt = getBacktrace();
   printPrettyTrace(bt, output, options, framesToSkip);
 }
 
-private void printPrettyTrace(const(void*[]) bt, File output, PrintOptions options = PrintOptions.init, uint framesToSkip = 1) {
+private void printPrettyTrace(OR)(const(void*[]) bt, ref OR output, PrintOptions options = PrintOptions.init, uint framesToSkip = 1, bool insertNewlines = true) {
   import std.algorithm : max;
   import std.range;
+  import std.format;
 
   Symbol[] symbols = getBacktraceSymbols(bt);
   Trace[] trace = getLineTrace(bt);
@@ -173,11 +188,32 @@ private void printPrettyTrace(const(void*[]) bt, File output, PrintOptions optio
     else return "\u001B[0m";
   }
 
-  output.writeln("Stack trace:");
+  output.put("Stack trace:");
+  if (insertNewlines) output.put("\n");
 
   foreach(i, t; trace.drop(framesToSkip)) {
     auto symbol = symbols[framesToSkip + i].demangled;
-    output.writeln("#", i + 1, ": ", forecolor(Color.red), t.file, reset(), " line ", forecolor(Color.yellow), "(", t.line, ")", reset(), symbol.length == 0 ? "" : " in ", forecolor(Color.green), symbol, reset(), " @ ", forecolor(Color.green), "0x", bt[i + 1], reset());
+    auto s = appender!string();
+    formattedWrite(
+      s,
+      "#%d: %s%s%s line %s (%s)%s%s%s%s%s @ %s0x%s%s",
+      i+1,
+      forecolor(Color.red),
+      t.file,
+      reset(),
+      forecolor(Color.yellow),
+      t.line,
+      reset(),
+      symbol.length == 0 ? "" : " in ",
+      forecolor(Color.green),
+      symbol,
+      reset(),
+      forecolor(Color.green),
+      bt[i + 1],
+      reset()
+    );
+    output.put(s.data);
+    if (insertNewlines) output.put("\n");
 
     if (i < options.detailedForN) {
       uint startingLine = max(t.line - options.numberOfLinesBefore - 1, 0);
@@ -196,59 +232,96 @@ private void printPrettyTrace(const(void*[]) bt, File output, PrintOptions optio
 
       lines.drop(startingLine);
       auto lineNumber = startingLine + 1;
-      output.writeln();
+      output.put(insertNewlines?"\n":"");
       foreach (line; lines.take(endingLine - startingLine)) {
-        output.writeln(forecolor(t.line == lineNumber ? Color.yellow : Color.cyan), t.line == lineNumber ? ">" : " ", "(", lineNumber , ") ", forecolor(t.line == lineNumber ? Color.yellow : Color.blue), line);
+        auto s2 = appender!string();
+        formattedWrite(
+          s2,
+          "%s%s(%d)%s%s",
+          forecolor(t.line == lineNumber ? Color.yellow : Color.cyan),
+          t.line == lineNumber ? ">" : " ",
+          lineNumber,
+          forecolor(t.line == lineNumber ? Color.yellow : Color.blue),
+          line
+        );
+        output.put(s2.data);
+        if (insertNewlines) output.put("\n");
         lineNumber++;
       }
-      output.writeln(reset());
-
+      output.put(reset());
+      if (insertNewlines) output.put("\n");
     }
 
     if (options.stopAtDMain && symbol == "_Dmain") break;
   }
 }
 
+// TODO. I imagine something like this is available somewhere in Phobos.
+
+private struct DelegateOutputRange1
+{
+  int delegate(ref const(char[])) dg;
+
+  void put(const(char[]) s) { dg(s); }
+}
+
+private struct DelegateOutputRange2
+{
+  int delegate(ref size_t, ref const(char[])) dg;
+
+  private size_t i = 0;
+
+  void put(const(char[]) s) { dg(i,s); i++; }
+}
+
 private class BTTraceHandler : Throwable.TraceInfo {
   void*[] backtrace;
   PrintOptions options;
-  File output;
   uint framesToSkip;
 
-  this(File file, PrintOptions options, uint framesToSkip) {
+  this(PrintOptions options, uint framesToSkip) {
     this.options = options;
-    this.output = file;
     this.framesToSkip = framesToSkip;
     backtrace = getBacktrace();
   }
 
   override int opApply(scope int delegate(ref const(char[])) dg) const {
-    printPrettyTrace(backtrace, stdout, options, framesToSkip);
+    auto or = DelegateOutputRange1(dg);
+    printPrettyTrace(backtrace, or, options, framesToSkip, false);
     return 1;
   }
 
   override int opApply(scope int delegate(ref size_t, ref const(char[])) dg) const {
-    printPrettyTrace(backtrace, stdout, options, framesToSkip);
+    auto or = DelegateOutputRange2(dg);
+    printPrettyTrace(backtrace, or, options, framesToSkip, false);
     return 1;
   }
 
   override string toString() const {
-    return "";
+    import std.array;
+    auto buf = appender!string();
+    printPrettyTrace(backtrace, buf, options, framesToSkip);
+
+    return buf.data;
   }
 }
 
 private static PrintOptions runtimePrintOptions;
-private static File runtimeOutputFile;
 private static uint runtimeFramesToSkip;
 
 private Throwable.TraceInfo btTraceHandler(void* ptr) {
-  return new BTTraceHandler(runtimeOutputFile, runtimePrintOptions, runtimeFramesToSkip);
+  return new BTTraceHandler(runtimePrintOptions, runtimeFramesToSkip);
 }
 
+// This is kept for backwards compatibility, however, file was never used
+// so it is redundant.
 void install(File file, PrintOptions options = PrintOptions.init, uint framesToSkip = 5) {
+  install(options, framesToSkip);
+}
+
+void install(PrintOptions options = PrintOptions.init, uint framesToSkip = 5) {
   import core.runtime;
   runtimePrintOptions = options;
-  runtimeOutputFile = file;
   runtimeFramesToSkip = framesToSkip;
   Runtime.traceHandler = &btTraceHandler;
 }
