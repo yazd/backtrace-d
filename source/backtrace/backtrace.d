@@ -137,24 +137,21 @@ private string exePath() {
   return path;
 }
 
-void printPrettyTrace(PrintOptions options = PrintOptions.init, uint framesToSkip = 1) {
-  void*[] bt = getBacktrace();
-  auto or = stdout.lockingTextWriter();
-  printPrettyTrace(bt, or, options, framesToSkip);
+void printPrettyTrace(PrintOptions options = PrintOptions.init, uint framesToSkip = 2) {
+  printPrettyTrace(stdout, options, framesToSkip);
 }
 
 void printPrettyTrace(File output, PrintOptions options = PrintOptions.init, uint framesToSkip = 1) {
   void*[] bt = getBacktrace();
-  auto or = output.lockingTextWriter();
-  printPrettyTrace(bt, or, options, framesToSkip);
+  output.write(getPrettyTrace(bt, options, framesToSkip));
 }
 
-void printPrettyTrace(OR)(ref OR output, PrintOptions options = PrintOptions.init, uint framesToSkip = 1) {
+string prettyTrace(PrintOptions options = PrintOptions.init, uint framesToSkip = 1) {
   void*[] bt = getBacktrace();
-  printPrettyTrace(bt, output, options, framesToSkip);
+  return getPrettyTrace(bt, options, framesToSkip);
 }
 
-private void printPrettyTrace(OR)(const(void*[]) bt, ref OR output, PrintOptions options = PrintOptions.init, uint framesToSkip = 1, bool insertNewlines = true) {
+private string getPrettyTrace(const(void*[]) bt, PrintOptions options = PrintOptions.init, uint framesToSkip = 1) {
   import std.algorithm : max;
   import std.range;
   import std.format;
@@ -188,15 +185,16 @@ private void printPrettyTrace(OR)(const(void*[]) bt, ref OR output, PrintOptions
     else return "\u001B[0m";
   }
 
-  output.put("Stack trace:");
-  if (insertNewlines) output.put("\n");
+  auto output = appender!string();
+
+  output.put("Stack trace:\n");
 
   foreach(i, t; trace.drop(framesToSkip)) {
     auto symbol = symbols[framesToSkip + i].demangled;
-    auto s = appender!string();
+
     formattedWrite(
-      s,
-      "#%d: %s%s%s line %s (%s)%s%s%s%s%s @ %s0x%s%s",
+      output,
+      "#%d: %s%s%s line %s (%s)%s%s%s%s%s @ %s0x%s%s\n",
       i+1,
       forecolor(Color.red),
       t.file,
@@ -212,8 +210,6 @@ private void printPrettyTrace(OR)(const(void*[]) bt, ref OR output, PrintOptions
       bt[i + 1],
       reset()
     );
-    output.put(s.data);
-    if (insertNewlines) output.put("\n");
 
     if (i < options.detailedForN) {
       uint startingLine = max(t.line - options.numberOfLinesBefore - 1, 0);
@@ -232,49 +228,31 @@ private void printPrettyTrace(OR)(const(void*[]) bt, ref OR output, PrintOptions
 
       lines.drop(startingLine);
       auto lineNumber = startingLine + 1;
-      output.put(insertNewlines?"\n":"");
+      output.put("\n");
       foreach (line; lines.take(endingLine - startingLine)) {
-        auto s2 = appender!string();
         formattedWrite(
-          s2,
-          "%s%s(%d)%s%s",
+          output,
+          "%s%s(%d)%s%s\n",
           forecolor(t.line == lineNumber ? Color.yellow : Color.cyan),
           t.line == lineNumber ? ">" : " ",
           lineNumber,
           forecolor(t.line == lineNumber ? Color.yellow : Color.blue),
           line
         );
-        output.put(s2.data);
-        if (insertNewlines) output.put("\n");
         lineNumber++;
       }
       output.put(reset());
-      if (insertNewlines) output.put("\n");
+      output.put("\n");
     }
 
     if (options.stopAtDMain && symbol == "_Dmain") break;
   }
-}
-
-// TODO. I imagine something like this is available somewhere in Phobos.
-
-private struct DelegateOutputRange1
-{
-  int delegate(ref const(char[])) dg;
-
-  void put(const(char[]) s) { dg(s); }
-}
-
-private struct DelegateOutputRange2
-{
-  int delegate(ref size_t, ref const(char[])) dg;
-
-  private size_t i = 0;
-
-  void put(const(char[]) s) { dg(i,s); i++; }
+  return output.data;
 }
 
 private class BTTraceHandler : Throwable.TraceInfo {
+  import std.algorithm;
+
   void*[] backtrace;
   PrintOptions options;
   uint framesToSkip;
@@ -286,23 +264,33 @@ private class BTTraceHandler : Throwable.TraceInfo {
   }
 
   override int opApply(scope int delegate(ref const(char[])) dg) const {
-    auto or = DelegateOutputRange1(dg);
-    printPrettyTrace(backtrace, or, options, framesToSkip, false);
-    return 1;
+    int result = 0;
+    auto prettyTrace = getPrettyTrace(backtrace, options, framesToSkip);
+    auto bylines = prettyTrace.splitter("\n");
+    foreach (l; bylines) {
+      result = dg(l);
+      if (result)
+        break;
+    }
+    return result;
   }
 
   override int opApply(scope int delegate(ref size_t, ref const(char[])) dg) const {
-    auto or = DelegateOutputRange2(dg);
-    printPrettyTrace(backtrace, or, options, framesToSkip, false);
-    return 1;
+    int result = 0;
+    auto prettyTrace = getPrettyTrace(backtrace, options, framesToSkip);
+    auto bylines = prettyTrace.splitter("\n");
+    size_t i = 0;
+    foreach (l; bylines) {
+      result = dg(i,l);
+      if (result)
+        break;
+      ++i;
+    }
+    return result;
   }
 
   override string toString() const {
-    import std.array;
-    auto buf = appender!string();
-    printPrettyTrace(backtrace, buf, options, framesToSkip);
-
-    return buf.data;
+    return getPrettyTrace(backtrace, options, framesToSkip);
   }
 }
 

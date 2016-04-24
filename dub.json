@@ -5,6 +5,15 @@
   "copyright": "Copyright © 2013, Yazan Dabain",
   "authors": ["Yazan Dabain"],
   "targetType": "sourceLibrary",
-  "license": "BSL-1.0"
+  "license": "BSL-1.0",
+
+  "configurations":
+  [
+    {
+      "name": "sample",
+      "targetType": "executable",
+      "mainSourceFile": "sample/sample.d"
+    }
+  ]
 }
 
