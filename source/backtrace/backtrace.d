@@ -194,8 +194,8 @@ private string getPrettyTrace(const(void*[]) bt, PrintOptions options = PrintOpt
 
     formattedWrite(
       output,
-      "#%d: %s%s%s line %s (%s)%s%s%s%s%s @ %s0x%s%s\n",
-      i+1,
+      "#%d: %s%s%s line %s(%s)%s%s%s%s%s @ %s0x%s%s\n",
+      i + 1,
       forecolor(Color.red),
       t.file,
       reset(),
