@@ -264,15 +264,9 @@ private class BTTraceHandler : Throwable.TraceInfo {
   }
 
   override int opApply(scope int delegate(ref const(char[])) dg) const {
-    int result = 0;
-    auto prettyTrace = getPrettyTrace(backtrace, options, framesToSkip);
-    auto bylines = prettyTrace.splitter("\n");
-    foreach (l; bylines) {
-      result = dg(l);
-      if (result)
-        break;
-    }
-    return result;
+    return opApply((ref size_t i, ref const(char[]) s) {
+        return dg(s);
+    });
   }
 
   override int opApply(scope int delegate(ref size_t, ref const(char[])) dg) const {
@@ -281,7 +275,7 @@ private class BTTraceHandler : Throwable.TraceInfo {
     auto bylines = prettyTrace.splitter("\n");
     size_t i = 0;
     foreach (l; bylines) {
-      result = dg(i,l);
+      result = dg(i, l);
       if (result)
         break;
       ++i;
