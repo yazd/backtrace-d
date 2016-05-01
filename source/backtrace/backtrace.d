@@ -232,16 +232,16 @@ private string getPrettyTrace(const(void*[]) bt, PrintOptions options = PrintOpt
       foreach (line; lines.take(endingLine - startingLine)) {
         formattedWrite(
           output,
-          "%s%s(%d)%s%s\n",
+          "%s%s(%d)%s%s%s\n",
           forecolor(t.line == lineNumber ? Color.yellow : Color.cyan),
           t.line == lineNumber ? ">" : " ",
           lineNumber,
           forecolor(t.line == lineNumber ? Color.yellow : Color.blue),
-          line
+          line,
+          reset(),
         );
         lineNumber++;
       }
-      output.put(reset());
       output.put("\n");
     }
 
